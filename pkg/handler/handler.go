@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"github.com/HunkevychPhilip/todo/pkg/service"
-	"github.com/HunkevychPhilip/todo/pkg/utils"
+	"github.com/hunkevych-philip/mono-app/pkg/service"
+	"github.com/hunkevych-philip/mono-app/pkg/utils"
 )
 
 type Handler struct {

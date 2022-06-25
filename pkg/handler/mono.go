@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"strings"
@@ -49,6 +50,7 @@ func (h *Handler) getClientStatement(c *gin.Context) {
 	}
 
 	// TODO: Make an API call to a monobank here
+	fmt.Println(timeT)
 }
 
 func (h *Handler) getClientInfo(c *gin.Context) {

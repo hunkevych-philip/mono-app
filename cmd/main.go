@@ -1,12 +1,11 @@
 package main
 
 import (
-	"github.com/HunkevychPhilip/todo/pkg/handler"
-	"github.com/HunkevychPhilip/todo/pkg/service"
-	"github.com/HunkevychPhilip/todo/pkg/utils"
-	"github.com/HunkevychPhilip/todo/server"
+	"github.com/hunkevych-philip/mono-app/pkg/handler"
+	"github.com/hunkevych-philip/mono-app/pkg/service"
+	"github.com/hunkevych-philip/mono-app/pkg/utils"
+	"github.com/hunkevych-philip/mono-app/server"
 	"github.com/joho/godotenv"
-	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )

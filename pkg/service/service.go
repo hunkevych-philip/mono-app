@@ -1,6 +1,6 @@
 package service
 
-import "github.com/HunkevychPhilip/todo/pkg/service/mono"
+import "github.com/hunkevych-philip/mono-app/pkg/service/mono"
 
 type Mono interface {
 	Create() (int, error)

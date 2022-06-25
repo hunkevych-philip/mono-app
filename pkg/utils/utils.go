@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"github.com/HunkevychPhilip/todo/pkg/utils/response"
 	"github.com/gin-gonic/gin"
+	"github.com/hunkevych-philip/mono-app/pkg/utils/response"
 )
 
 type ResponseHandler interface {
