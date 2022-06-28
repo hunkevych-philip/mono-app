@@ -7,7 +7,7 @@ import (
 func (h *Handler) InitRoutes() *gin.Engine {
 	router := gin.New()
 
-	api := router.Group("/api.monobank.ua")
+	api := router.Group("/mono-app")
 	{
 		personal := api.Group("/personal")
 		{
@@ -15,7 +15,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 			statement := personal.Group("/statement")
 			{
-				statement.GET("/:account/:from/:to", h.getClientStatement)
+				statement.GET("/:account/:from/", h.getProcessedStatement)
 			}
 		}
 	}

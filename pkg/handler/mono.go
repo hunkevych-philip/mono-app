@@ -3,54 +3,59 @@ package handler
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/hunkevych-philip/mono-app/pkg/types"
+	"github.com/hunkevych-philip/mono-app/pkg/utils/response"
 	"github.com/sirupsen/logrus"
+	"net/http"
 	"strings"
 	"time"
 )
 
-const (
-	HeaderKeyXToken string = "X-Token"
-	ParamKeyAccount string = "account"
-	ParamKeyFrom    string = "from"
-	ParamKeyTo      string = "to"
-)
-
-func (h *Handler) getClientStatement(c *gin.Context) {
+// getProcessedStatement performs high-level validations and calls mono service to process a user's statement
+func (h *Handler) getProcessedStatement(c *gin.Context) {
 	var (
-		token     = c.GetHeader(HeaderKeyXToken)
-		account   = c.Param(ParamKeyAccount)
-		startDate = c.Param(ParamKeyFrom) // we expect it to be a full date
-		_         = c.Param(ParamKeyTo)   // empty is ok, a format the same as for startDate
+		token   = c.GetHeader(types.HeaderKeyXToken)
+		account = c.Param(types.ParamKeyAccount)
+		from    = c.Param(types.ParamKeyFrom)
 
 		RFC3339noTimeLayout = time.RFC3339[:strings.Index(time.RFC3339, "T")]
 	)
 
-	timeT, err := time.Parse(RFC3339noTimeLayout, "2020-04-14")
-	if err != nil {
-		// TODO: Handler error
-		logrus.Errorf("Failed to parse date: %s", err.Error())
-
-		return
-	}
-
 	if len(token) == 0 {
-		// TODO: Handle error
-		logrus.Error("X-Token header is missing")
+		err := fmt.Errorf("%q header is missing", types.HeaderKeyXToken)
+		logrus.Error(err)
+		h.utilities.ResponseHandler.CommonResponseJSON(c, http.StatusBadRequest, response.ErrorResponseKeyName, err.Error())
 
 		return
 	}
 	if len(account) == 0 {
-		account = "0" // default
+		account = "0" // default account is 0
 	}
-	if len(startDate) == 0 {
-		// TODO: Handle error
-		logrus.Errorf("%q parameter cannot be empty", ParamKeyFrom)
+	if len(from) == 0 {
+		err := fmt.Errorf("%q parameter cannot be empty", types.ParamKeyFrom)
+		logrus.Error(err)
+		h.utilities.ResponseHandler.CommonResponseJSON(c, http.StatusBadRequest, response.ErrorResponseKeyName, err.Error())
 
 		return
 	}
 
-	// TODO: Make an API call to a monobank here
-	fmt.Println(timeT)
+	startDate, err := time.Parse(RFC3339noTimeLayout, from)
+	if err != nil {
+		logrus.Error(err)
+		err := fmt.Errorf("failed to parse start date: %q. Expected format is %q", from, RFC3339noTimeLayout)
+		h.utilities.ResponseHandler.CommonResponseJSON(c, http.StatusBadRequest, response.ErrorResponseKeyName, err.Error())
+
+		return
+	}
+
+	statement, err := h.services.Mono.ProcessStatement(token, account, startDate)
+	if err != nil {
+		h.utilities.ResponseHandler.CommonResponseJSON(c, http.StatusBadRequest, response.ErrorResponseKeyName, err.Error())
+
+		return
+	}
+
+	h.utilities.ResponseHandler.CommonResponseJSON(c, http.StatusOK, "statement", statement)
 }
 
 func (h *Handler) getClientInfo(c *gin.Context) {
