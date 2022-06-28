@@ -55,6 +55,14 @@ func (h *Handler) getProcessedStatement(c *gin.Context) {
 		return
 	}
 
+	if err := h.services.Excel.GenerateSheetForStatement(statement); err != nil {
+		logrus.Error(err)
+		err := fmt.Errorf("failed to generate an excel sheet for the statement")
+		h.utilities.ResponseHandler.CommonResponseJSON(c, http.StatusInsufficientStorage, response.ErrorResponseKeyName, err.Error())
+
+		return
+	}
+
 	h.utilities.ResponseHandler.CommonResponseJSON(c, http.StatusOK, "statement", statement)
 }
 

@@ -31,7 +31,7 @@ func NewMonoClient() (*MonoClient, error) {
 	return client, nil
 }
 
-func (c *MonoClient) GetStatement(token, account string, startDate time.Time) ([]*types.Statement, error) {
+func (c *MonoClient) GetStatement(token, account string, startDate time.Time) (*types.Statement, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
@@ -58,8 +58,10 @@ func (c *MonoClient) GetStatement(token, account string, startDate time.Time) ([
 		return nil, err
 	}
 
-	res := make([]*types.Statement, 0)
-	if err := json.Unmarshal(all, &res); err != nil {
+	res := &types.Statement{
+		StatementRecords: make([]*types.StatementRecord, 0),
+	}
+	if err := json.Unmarshal(all, &res.StatementRecords); err != nil {
 		return nil, err
 	}
 

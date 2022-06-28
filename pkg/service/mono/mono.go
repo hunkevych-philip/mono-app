@@ -9,7 +9,7 @@ import (
 )
 
 type MonoClient interface {
-	GetStatement(token, account string, startDate time.Time) ([]*types.Statement, error)
+	GetStatement(token, account string, startDate time.Time) (*types.Statement, error)
 }
 
 type MonoService struct {
@@ -27,7 +27,7 @@ func NewMonoService() (*MonoService, error) {
 	}, nil
 }
 
-func (s *MonoService) ProcessStatement(token, account string, startDate time.Time) ([]*types.Statement, error) {
+func (s *MonoService) ProcessStatement(token, account string, startDate time.Time) (*types.Statement, error) {
 	// max possible value is 31 days + 1 hour
 	if time.Now().UnixNano()-startDate.UnixNano() > int64(time.Hour*24*31+time.Hour) {
 		err := fmt.Errorf("a start date should be within 31 day range from now. You entered: %s", startDate)
