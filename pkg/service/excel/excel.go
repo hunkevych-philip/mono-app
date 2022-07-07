@@ -14,10 +14,7 @@ func NewExcelService() *ExcelService {
 }
 
 func (e *ExcelService) GenerateSheetForStatement(statement *types.Statement) error {
-	f, err := excelize.OpenFile("simple.xlsx")
-	if err != nil {
-		return err
-	}
+	f := excelize.NewFile()
 
 	sheetName1 := "Sheet1"
 	for i, j := 0, 1; i < len(statement.StatementRecords); i++ {
@@ -26,7 +23,7 @@ func (e *ExcelService) GenerateSheetForStatement(statement *types.Statement) err
 			continue
 		}
 
-		err = f.SetCellValue(sheetName1, fmt.Sprintf("A%d", j), statement.StatementRecords[i].Description)
+		err := f.SetCellValue(sheetName1, fmt.Sprintf("A%d", j), statement.StatementRecords[i].Description)
 		if err != nil {
 			return err
 		}
@@ -35,9 +32,10 @@ func (e *ExcelService) GenerateSheetForStatement(statement *types.Statement) err
 		if err != nil {
 			return err
 		}
+		j++
 	}
 
-	if err = f.SaveAs("simple.xlsx"); err != nil {
+	if err := f.SaveAs("simple.xlsx"); err != nil {
 		return err
 	}
 

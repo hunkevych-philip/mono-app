@@ -29,7 +29,6 @@ func (c *MonoClient) GetStatement(token, account string, startDate time.Time) (*
 
 	// https://api.monobank.ua/personal/statement/{account}/{from}/{to}
 	url := c.BaseUrl + fmt.Sprintf("/personal/statement/%s/%d}", account, startDate.Unix())
-	fmt.Println(url)
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err

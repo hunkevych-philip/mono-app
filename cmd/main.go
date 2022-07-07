@@ -53,14 +53,12 @@ func main() {
 		flag.Usage()
 	}
 
-	services := service.NewService(
-		mono.NewMonoService(),
-		excel.NewExcelService(),
+	var (
+		s = service.NewService(mono.NewMonoService(), excel.NewExcelService())
+		h = handler.NewHandler(s)
 	)
-	h := handler.NewHandler(services)
 
-	err := h.Go(*xTokenFlag, "", "")
-	if err != nil {
+	if err := h.Go(*xTokenFlag, "", ""); err != nil {
 		log.Fatalln(err)
 	}
 }
