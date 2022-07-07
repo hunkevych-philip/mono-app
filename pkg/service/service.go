@@ -1,15 +1,12 @@
 package service
 
 import (
-	"github.com/hunkevych-philip/mono-app/pkg/service/excel"
-	"github.com/hunkevych-philip/mono-app/pkg/service/mono"
 	"github.com/hunkevych-philip/mono-app/pkg/types"
-	"time"
 )
 
 //Mono is a custom service for retrieving data from the monobank using an API client
 type Mono interface {
-	ProcessStatement(token, account string, startDate time.Time) (*types.Statement, error)
+	GetStatement(token, account string, from string) (*types.Statement, error)
 }
 
 type Excel interface {
@@ -21,15 +18,9 @@ type ServicesImpl struct {
 	Excel Excel
 }
 
-func NewService() (*ServicesImpl, error) {
-	excelService := excel.NewExcelService()
-	monoService, err := mono.NewMonoService()
-	if err != nil {
-		return nil, err
-	}
-
+func NewService(mono Mono, excel Excel) *ServicesImpl {
 	return &ServicesImpl{
-		Mono:  monoService,
-		Excel: excelService,
-	}, nil
+		Mono:  mono,
+		Excel: excel,
+	}
 }

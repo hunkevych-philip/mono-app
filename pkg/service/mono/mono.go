@@ -1,10 +1,9 @@
 package mono
 
 import (
-	"fmt"
 	"github.com/hunkevych-philip/mono-app/pkg/service/mono/mono_client"
 	"github.com/hunkevych-philip/mono-app/pkg/types"
-	"github.com/sirupsen/logrus"
+	"strings"
 	"time"
 )
 
@@ -16,35 +15,38 @@ type MonoService struct {
 	MonoClient MonoClient
 }
 
-func NewMonoService() (*MonoService, error) {
-	monoClient, err := mono_client.NewMonoClient()
-	if err != nil {
-		return nil, err
-	}
-
+func NewMonoService() *MonoService {
 	return &MonoService{
-		MonoClient: monoClient,
-	}, nil
+		MonoClient: mono_client.NewMonoClient(),
+	}
 }
 
-func (s *MonoService) ProcessStatement(token, account string, startDate time.Time) (*types.Statement, error) {
-	// max possible value is 31 days + 1 hour
-	if time.Now().UnixNano()-startDate.UnixNano() > int64(time.Hour*24*31+time.Hour) {
-		err := fmt.Errorf("a start date should be within 31 day range from now. You entered: %s", startDate)
-		logrus.Error(err)
+func (s *MonoService) GetStatement(token, account string, fromStr string) (*types.Statement, error) {
+	var (
+		err error
 
-		return nil, err
+		fromTime       = time.Time{}
+		RFC3339trimmed = time.RFC3339[:strings.Index(time.RFC3339, "T")]
+	)
+
+	if fromStr == "" {
+		// Put max allowed value (31 days + 1 hour)
+		fromTime = time.Now().Add(-time.Hour * 24 * 31)
+	} else {
+		fromTime, err = time.Parse(RFC3339trimmed, fromStr)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	statement, err := s.MonoClient.GetStatement(token, account, startDate)
+	if account == "" {
+		account = "0" // default account
+	}
+
+	statement, err := s.MonoClient.GetStatement(token, account, fromTime)
 	if err != nil {
-		// TODO: Implement error handling recursively
-		logrus.Error(err)
-
 		return nil, err
 	}
-
-	// TODO: Export data to some file
 
 	return statement, nil
 }

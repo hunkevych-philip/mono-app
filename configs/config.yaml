@@ -1,3 +1,0 @@
-port: "8000"
-debug: true
-mono_api_base_urL : "https://api.monobank.ua"

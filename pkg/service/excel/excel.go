@@ -3,7 +3,6 @@ package excel
 import (
 	"fmt"
 	"github.com/hunkevych-philip/mono-app/pkg/types"
-	"github.com/sirupsen/logrus"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -17,28 +16,28 @@ func NewExcelService() *ExcelService {
 func (e *ExcelService) GenerateSheetForStatement(statement *types.Statement) error {
 	f, err := excelize.OpenFile("simple.xlsx")
 	if err != nil {
-		logrus.Error(err)
 		return err
 	}
 
 	sheetName1 := "Sheet1"
-	for i, s := range statement.StatementRecords {
-		i++ // Excel sheet starts with 1
-		if err := f.SetCellValue(sheetName1, fmt.Sprintf("A%d", i), s.Description); err != nil {
-			logrus.Error(err)
-		}
-
-		if s.Amount > 0 {
+	for i, j := 0, 1; i < len(statement.StatementRecords); i++ {
+		if statement.StatementRecords[i].Amount > 0 {
 			// I wish to display only expenses
 			continue
 		}
+
+		err = f.SetCellValue(sheetName1, fmt.Sprintf("A%d", j), statement.StatementRecords[i].Description)
+		if err != nil {
+			return err
+		}
 		// I wish to display expenses as non-negative numbers
-		if err := f.SetCellValue(sheetName1, fmt.Sprintf("B%d", i), s.Amount*-1/100); err != nil {
-			logrus.Error(err)
+		err = f.SetCellValue(sheetName1, fmt.Sprintf("B%d", j), statement.StatementRecords[i].Amount*-1/100)
+		if err != nil {
+			return err
 		}
 	}
 
-	if err := f.SaveAs("simple.xlsx"); err != nil {
+	if err = f.SaveAs("simple.xlsx"); err != nil {
 		return err
 	}
 

@@ -5,30 +5,22 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hunkevych-philip/mono-app/pkg/types"
-	"github.com/spf13/viper"
 	"io/ioutil"
 	"net/http"
 	"time"
 )
-
-const ConfigKeyMonoBaseUrl string = "mono_api_base_urL"
 
 type MonoClient struct {
 	HttpClient *http.Client
 	BaseUrl    string
 }
 
-func NewMonoClient() (*MonoClient, error) {
-	client := &MonoClient{
+func NewMonoClient() *MonoClient {
+	return &MonoClient{
 		HttpClient: new(http.Client),
-		BaseUrl:    viper.GetString(ConfigKeyMonoBaseUrl),
+		// TODO: We can pass BaseUrl as an input
+		BaseUrl: "https://api.monobank.ua",
 	}
-
-	if len(client.BaseUrl) == 0 {
-		return nil, fmt.Errorf("%q is not set in a config file", ConfigKeyMonoBaseUrl)
-	}
-
-	return client, nil
 }
 
 func (c *MonoClient) GetStatement(token, account string, startDate time.Time) (*types.Statement, error) {
@@ -37,6 +29,7 @@ func (c *MonoClient) GetStatement(token, account string, startDate time.Time) (*
 
 	// https://api.monobank.ua/personal/statement/{account}/{from}/{to}
 	url := c.BaseUrl + fmt.Sprintf("/personal/statement/%s/%d}", account, startDate.Unix())
+	fmt.Println(url)
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err

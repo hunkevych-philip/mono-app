@@ -1,56 +1,72 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"github.com/hunkevych-philip/mono-app/pkg/handler"
 	"github.com/hunkevych-philip/mono-app/pkg/service"
-	"github.com/hunkevych-philip/mono-app/pkg/utils"
-	"github.com/hunkevych-philip/mono-app/server"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
+	"github.com/hunkevych-philip/mono-app/pkg/service/excel"
+	"github.com/hunkevych-philip/mono-app/pkg/service/mono"
+	"log"
+	"os"
 )
 
-const (
-	ConfigKeyPort  string = "port"
-	ConfigKeyDebug string = "debug"
+//flag descriptions
+var (
+	helpFlagDesc   = "Prints descriptions of available flags."
+	xTokenFlagDesc = "Your personal token obtained on https://api.monobank.ua/."
 )
 
-func main() {
-	if err := initConfig(); err != nil {
-		logrus.Fatalf("Could not read config file: %s", err.Error())
-	}
+//flag declarations
+var (
+	helpFlag   = flag.Bool("help", false, helpFlagDesc)
+	xTokenFlag = flag.String("x-token", "", helpFlagDesc)
+)
 
-	switch viper.GetBool(ConfigKeyDebug) {
-	case true:
-		logrus.SetLevel(logrus.DebugLevel)
-	case false:
-		logrus.SetLevel(logrus.InfoLevel)
-	}
+func init() {
+	//shorthand notations
+	flag.BoolVar(helpFlag, "h", false, helpFlagDesc)
+	flag.StringVar(xTokenFlag, "x", "", xTokenFlagDesc)
+	// TODO: Add start date flag + end date flag
+	// TODO: Add account choice flag
+	// TODO: Add a flag for excel filename and location
 
-	services, err := service.NewService()
-	if err != nil {
-		logrus.Fatalf("Services initialization failed: %s", err.Error())
-	}
-
-	utilities := utils.NewUtils()
-	handler := handler.NewHandler(services, utilities)
-
-	s := new(server.Server)
-
-	port := viper.GetString(ConfigKeyPort)
-	if len(port) == 0 {
-		logrus.Infof("%q is not set in a config file. Using default: 8080", ConfigKeyPort)
-		port = "8080"
-	}
-
-	logrus.Infof("Starting server on a port: %s\n", port)
-	if err := s.Start(port, handler.InitRoutes()); err != nil {
-		logrus.Fatalf("Server returned an error: %s", err.Error())
+	//custom flag usage
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stdout, "Usage: %s [OPTIONS] -x \"X-Token\"\n\n", os.Args[0])
+		fmt.Fprintf(os.Stdout, "Options:\n")
+		fmt.Fprintf(os.Stdout, "-h, --help\t\t%s\n", helpFlagDesc)
+		fmt.Fprintf(os.Stdout, "-x, --x-token\t\t%s\n", xTokenFlagDesc)
+		os.Exit(0)
 	}
 }
 
-func initConfig() error {
-	viper.AddConfigPath("configs")
-	viper.SetConfigName("config")
+func main() {
+	flag.Parse()
 
-	return viper.ReadInConfig()
+	if *helpFlag {
+		flag.Usage() // will print usage and exit
+	}
+
+	if *xTokenFlag == "" {
+		printlnfStdOut("X-Token is required to proceed.")
+		flag.Usage()
+	}
+
+	services := service.NewService(
+		mono.NewMonoService(),
+		excel.NewExcelService(),
+	)
+	h := handler.NewHandler(services)
+
+	err := h.Go(*xTokenFlag, "", "")
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
+
+func printlnfStdOut(msg string) {
+	if _, err := fmt.Fprintln(os.Stdout, msg); err != nil {
+		log.Fatalf("Failed to send message to stdout: %s\n", msg)
+	}
 }
